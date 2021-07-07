@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package bsp_transaction;
+
+message BspBlockRequest {
+    uint64 BlockNumber = 1;
+    string Region = 2;
+}
+
+// BlockResponse 's Payload contains MCHeader when it's GetMCBlockByNumber, or EC-Blcok for GetECBlockByNumber
+message BlockResponse {
+    bytes Payload = 1;
+    bytes Signature = 2;
+    bytes SignatureHeader = 3;
+}
+
+service BlockService {
+    // GetMCBlockByNumber actually returns MCHeader, rather than real body of MC-Block
+    rpc GetMCBlockByNumber(BspBlockRequest) returns (BlockResponse);
+    // GetECBlockByNumber returns a requested EC-Block
+    rpc GetECBlockByNumber(BspBlockRequest) returns (BlockResponse);
+}
