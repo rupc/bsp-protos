@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package bsp_transaction;
+
+message RequestViewChangeMessage {
+    uint64 timestamp = 1;
+    string Endpoint = 2;
+    uint64 peer_id = 3;
+    uint64 view_number = 4;
+
+    string CurrChannelId = 5;
+    string NextChannelId = 6;
+
+    string OldEndpoint = 7;
+
+    uint64 PreparedBlockHeight = 9;// locally known highest prepare height
+    bytes PreparedBlockHash = 11; // hash of a locally known highest prepare height
+    repeated bytes proof_blocks = 12;
+    /* bytes previous_block_hash = 10; */
+}
+
+message NewViewTx {
+    uint64 timestamp = 1;
+    uint64 view_number = 2;
+    string channel_id = 3;
+    string endpoint = 4;
+    string oldBspEndpoint = 5;
+
+    bytes statedb_hash = 6; // StateDB hash, built upto the highest stable prepared block height 
+    uint64 height = 7;
+    bytes current_block_hash = 9;
+    repeated RequestViewChangeMessage vcm = 11;
+
+    /* bytes previous_block_hash = 8; */
+    /* repeated bytes proof_blocks = 10; */
+}
+
+message NewViewTransaction {
+    bytes Payload = 1;
+    bytes Signature = 2;
+    bytes SignatureHeader = 3;
+}
+message PingMessage {
+    string greeting = 1;
+}
+
+message Resp {
+    string name = 1;
+    string status = 2;
+}
+
+message ViewChangeCommand {
+    string command = 1;
+    string source = 2;
+    string destination = 3;
+}
+
+message ChangeResultEvent {
+    uint64 PrevViewNumber = 1;
+    uint64 NextViewNumber = 2;
+    string OrdererEndpoint = 3;
+
+    // Expected to be unmarshaled to repeated KVWrites(i.e., an array of key/value pairs)
+    repeated bytes NextInitialState = 4;
+}
+
+message ServeRequest {
+    string msg = 1;
+}
+
+message ServeResponse {
+    string msg = 1;
+}
+
+service ViewChanger {
+    rpc Serve(ServeRequest) returns (ServeResponse) {}
+	rpc ViewChange(ViewChangeCommand) returns (Resp) {}
+	rpc AskViewChangeDone(ViewChangeCommand) returns (PingMessage) {}
+	rpc RequestViewChange(RequestViewChangeMessage) returns (Resp) {}
+}
