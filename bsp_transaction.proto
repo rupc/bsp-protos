@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package bsp_transaction;
+import "google/protobuf/timestamp.proto";
 
 message Version {
     uint64 BlockNumber = 1;
@@ -60,6 +61,13 @@ enum ChangeTriggerCode {
     EdgechainLiveness = 2;
     MainchainSafety = 4;
     MainchainLiveness = 3;
+}
+
+enum CCType {
+    CC_Noop = 0;
+    CC_Normal = 1;
+    CC_ECAuditTx = 2;
+    CC_MCAuditTx = 3;
 }
 
 // BspTransactionType is assigned to each BspTransaction before it is executed.
@@ -135,6 +143,7 @@ message TxEventPayload {
     uint64 Offset = 4;
     ConsensusState State = 5; // 
     string ActiveBSPAddress = 6;
+    google.protobuf.Timestamp issuedTimestamp = 7;
     bytes Extension = 10;
 }
 
@@ -214,6 +223,7 @@ message ProposalPayload {
     repeated string ChaincodeArgs = 4;
     // extensionPayload reserved for MC-Audit Tx or Client-Policy
     bytes ExtensionPaylod = 5;
+    google.protobuf.Timestamp timestamp = 6;
 }
 
 message SignatureHeader {
@@ -260,6 +270,7 @@ message AuditTransactionPayload {
     string ActiveID = 4; // BSP ID
     repeated string StanbyIDs = 5;
     string TxId = 6;
+    uint64 Seq = 7; // meaningful when the Audit Tx type is MC-Audit-Tx
 
     uint64 Number = 10; // current block number
     bytes Hash = 11; // Current block Hash
@@ -531,6 +542,20 @@ message SmartContractArgs {
     string ChaincodeId = 1;
     repeated string Args = 2;
     Policy Policy = 3;
+}
+
+message ChaincodeEvent {
+    string ChaincodeID = 1;
+    string TxID = 2;
+    string EventName = 3;
+    bytes Payload = 4;
+}
+
+message EnvWrap {
+    bytes EnvelopeBytes = 1;
+}
+message EnvelopeBatch {
+    repeated EnvWrap Batch = 1;
 }
 
 // Defines communication interface of BSP blockchain nodes, including BSP Orderer, BSP Executor, BSP Auditor
